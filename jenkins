@@ -1,0 +1,31 @@
+pipeline
+{
+    agent any
+    stages
+    {
+        stage('clone repo')
+        {
+            steps
+            {
+                git branch: 'main', 
+                credentialsId: 'git-hub-creds', 
+                url: 'https://github.com/Devopswithaws58/contact_backend_app.git'
+            }
+        }
+        stage('deploy to k8s')
+        {
+            steps
+            {
+                sh 'kubectl apply -f contact_backend_deployment.yml'
+            }
+        }
+    }
+    post{
+        always{
+          emailext to: "devopswithaws786@gmail.com",
+          subject: "jenkins build:${currentBuild.currentResult}: ${env.JOB_NAME}",
+          body: "${currentBuild.currentResult}: Job ${env.JOB_NAME}\nMore Info can be found here: ${env.BUILD_URL}",
+		 attachLog: true
+        }
+    }
+}
